@@ -10,6 +10,14 @@ class Smoke2DEngine {
   static IX(N: number, x: number, y: number) {
     return x + (N + 2) * y;
   }
+  IXrev(index:number){
+    return Smoke2DEngine.IXrev(this.N,index);
+  }
+  static IXrev(N:number, index:number){
+    let x = index % (N + 2);
+    let y = (index-x)/(N+2);
+    return {x,y};
+  }
 
   visc:number = 1;
   diff:number = 1;
@@ -69,7 +77,7 @@ class Smoke2DEngine {
     Smoke2DEngine.dens_step(this.N, this.dens, this.dens_prev, this.u, this.v, this.diff, this.dt);
     // console.log(3,this.dens);
     if(typeof callback === 'function') callback();
-    setTimeout(this.simulation_step.bind(this,callback), 1000);
+    setTimeout(this.simulation_step.bind(this,callback), 25);
   }
 
   static swap_objects(a: Object, b: Object) {

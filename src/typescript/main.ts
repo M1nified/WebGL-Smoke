@@ -8,10 +8,11 @@ var smoke,count=0;
 function start(){
 
   function render() {
-    console.log('scene',scene)
+    // console.log('scene',scene)
     requestAnimationFrame( render );
     renderer.render( scene, camera );
     controls.update();
+    // console.log(camera.position)
   }
 
   var scene = new THREE.Scene();
@@ -21,25 +22,26 @@ function start(){
   renderer.setSize( window.innerWidth, window.innerHeight );
   document.body.appendChild( renderer.domElement );
 
-  var geometry = new THREE.BoxGeometry( 10, 10, 10 );
-  var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-  var cube = new THREE.Mesh( geometry, material );
-  scene.add( cube );
+  // var geometry = new THREE.BoxGeometry( 10, 10, 10 );
+  // var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+  // var cube = new THREE.Mesh( geometry, material );
+  // scene.add( cube );
+  // setInterval(()=>{
+  // 				cube.rotation.x += 0.01;
+  // 				cube.rotation.y += 0.01;
+  // },10);
 
-  camera.position.z = 100;
-  camera.position.y = 100;
+  camera.position.x = 50;
+  camera.position.y = 20;
+  camera.position.z = 30;
 
 
-  setInterval(()=>{
-  				cube.rotation.x += 0.01;
-  				cube.rotation.y += 0.01;
-  },10);
 
   {
     var controls = new THREE.TrackballControls(camera);
-    controls.target.set( 0, 0, 0 )
+    // controls.target.set( 10, -10, 10 )
 
-    controls.rotateSpeed = 20;
+    controls.rotateSpeed = 1;
     controls.zoomSpeed = 1.2;
     controls.panSpeed = 0.8;
 

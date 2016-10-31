@@ -47,6 +47,16 @@ describe('Smoke2DEngine', () => {
     });
       
   });
+
+  
+  describe('IXrev', () => {
+    
+    it('should return coordinates for given index', () => {
+      expect(Smoke2DEngine.IXrev(1,3)).toEqual({x:0,y:1});
+    });
+      
+  });
+    
     
   describe('instance', () => {
     let i;

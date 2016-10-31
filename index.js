@@ -7,30 +7,32 @@
 var smoke, count = 0;
 function start() {
     function render() {
-        console.log('scene', scene);
+        // console.log('scene',scene)
         requestAnimationFrame(render);
         renderer.render(scene, camera);
         controls.update();
+        // console.log(camera.position)
     }
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     var renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
-    var geometry = new THREE.BoxGeometry(10, 10, 10);
-    var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    var cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
-    camera.position.z = 100;
-    camera.position.y = 100;
-    setInterval(() => {
-        cube.rotation.x += 0.01;
-        cube.rotation.y += 0.01;
-    }, 10);
+    // var geometry = new THREE.BoxGeometry( 10, 10, 10 );
+    // var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+    // var cube = new THREE.Mesh( geometry, material );
+    // scene.add( cube );
+    // setInterval(()=>{
+    // 				cube.rotation.x += 0.01;
+    // 				cube.rotation.y += 0.01;
+    // },10);
+    camera.position.x = 50;
+    camera.position.y = 20;
+    camera.position.z = 30;
     {
         var controls = new THREE.TrackballControls(camera);
-        controls.target.set(0, 0, 0);
-        controls.rotateSpeed = 20;
+        // controls.target.set( 10, -10, 10 )
+        controls.rotateSpeed = 1;
         controls.zoomSpeed = 1.2;
         controls.panSpeed = 0.8;
         controls.noZoom = true;
@@ -100,59 +102,66 @@ class Smoke {
 }
 class Smoke2D {
     constructor() {
-        this.N = 10;
+        this.N = 30;
+        this.accuracy = 100000;
         this.smokeMaterial = new THREE.PointsMaterial({
             transparent: true,
             blending: THREE.AdditiveBlending,
-            size: 20,
+            size: 0.1,
             color: 0x111111
         });
         this.scenes = [];
         this.particles = new THREE.Geometry;
-        this.replaceSmokePoints();
+        let vertices = new Array(this.accuracy).fill(0).map(() => {
+            return new THREE.Vector3(0, 0, 0);
+        });
+        this.particles.vertices = vertices;
+        // this.particles.vertices.concat(vertices);
+        this.smoke = new THREE.Points(this.particles, this.smokeMaterial);
+        this.smoke.sortParticles = true;
+        this.smoke.position.x = 10;
+        this.smoke.name = new Date().toString();
         this.engine = new Smoke2DEngine(this.N);
         this.engine.input_dens[10] = 10;
         this.engine.input_u[10] = 10;
         this.engine.input_v[10] = 10;
+        this.engine.input_dens[this.engine.IX(20, 20)] = 10;
+        this.engine.input_u[this.engine.IX(20, 20)] = 10;
+        this.engine.input_v[this.engine.IX(20, 20)] = 10;
+        this.engine.input_dens[this.engine.IX(1, 20)] = 100;
+        this.engine.input_u[this.engine.IX(1, 20)] = 0;
+        this.engine.input_v[this.engine.IX(1, 20)] = 10;
     }
     addToScene(scene) {
         this.scenes.push(scene);
         scene.add(this.smoke);
     }
-    replaceSmokePoints() {
-        let smoke_prev = this.smoke;
-        this.smoke = new THREE.Points(this.particles, this.smokeMaterial);
-        this.smoke.sortParticles = true;
-        this.smoke.position.x = 0;
-        this.smoke.name = new Date().toString();
-        return smoke_prev;
-    }
     simulate() {
         this.engine.simulate(() => {
-            // this.particles.verticles = [];
-            let particles_prev = this.particles;
-            this.particles = new THREE.Geometry;
+            let sumAll = this.engine.dens.reduce((sum, curr) => {
+                return sum + Math.floor(curr * 100000);
+            });
+            let perOne = this.accuracy / sumAll;
+            // console.log(sumAll,perOne);
+            let particleIndex = 0;
             for (let i = 1; i <= this.engine.N; i++) {
                 for (let j = 1; j <= this.engine.N; j++) {
                     let val = this.engine.dens[this.engine.IX(i, j)];
-                    this.spawn(Math.floor(val * 100000), i, j);
+                    let count = Math.floor(Math.floor(val * 100000) * perOne);
+                    // console.log(particleIndex,this.particles.vertices.length,count);
+                    // console.log(this.particles.vertices);
+                    debugger;
+                    for (let k = 0; k < count && particleIndex < this.particles.vertices.length; k++) {
+                        this.particles.vertices[particleIndex].x = Math.random() + i;
+                        this.particles.vertices[particleIndex].y = 0;
+                        this.particles.vertices[particleIndex].z = Math.random() + j;
+                        particleIndex++;
+                    }
                 }
             }
             this.particles.__dirtyVertices = true;
             this.particles.verticesNeedUpdate = true;
-            let smoke_prev = this.replaceSmokePoints();
-            this.scenes.forEach((scene) => {
-                // console.log('remove', scene);
-                scene.remove(smoke_prev);
-                scene.add(this.smoke);
-            });
         });
-    }
-    spawn(count, x, y) {
-        // console.log(count, x, y)
-        this.particles.vertices.push(new Array(count).fill(0).map(() => {
-            return new THREE.Vector3(Math.random() + x - 16, 0, Math.random() + y - 16);
-        }));
     }
 }
 class Smoke2DEngine {
@@ -174,6 +183,14 @@ class Smoke2DEngine {
     }
     static IX(N, x, y) {
         return x + (N + 2) * y;
+    }
+    IXrev(index) {
+        return Smoke2DEngine.IXrev(this.N, index);
+    }
+    static IXrev(N, index) {
+        let x = index % (N + 2);
+        let y = (index - x) / (N + 2);
+        return { x, y };
     }
     adjustArrays() {
         this.u = new Array(this.size).fill(0);
@@ -210,7 +227,7 @@ class Smoke2DEngine {
         // console.log(3,this.dens);
         if (typeof callback === 'function')
             callback();
-        setTimeout(this.simulation_step.bind(this, callback), 1000);
+        setTimeout(this.simulation_step.bind(this, callback), 25);
     }
     static swap_objects(a, b) {
         let clean = (obj) => {
