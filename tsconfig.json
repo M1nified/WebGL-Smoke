@@ -1,0 +1,12 @@
+{
+  "compilerOptions":{
+    "target":"es6",
+    "module":"amd",
+    "sourceMap": true,
+    "outFile": "index.js",
+    "watch": true
+  },
+  "include": [
+    "src/typescript/*.ts"
+  ]
+}
