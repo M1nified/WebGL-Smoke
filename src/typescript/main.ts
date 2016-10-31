@@ -15,6 +15,15 @@ function start(){
     // console.log(camera.position)
   }
 
+  function createFloor() {
+    let geometry = new THREE.PlaneGeometry(200, 200, 5, 5);
+    // geometry.applyMatrix(new THREE.Matrix4().makeRotationX(- Math.PI/2));
+    let material = new THREE.MeshBasicMaterial({ color: 0xc1c1c1 });
+    let mesh = new THREE.Mesh(geometry, material);
+    mesh.position = new THREE.Vector3(0,0,0);
+    return mesh;
+  }
+
   var scene = new THREE.Scene();
   var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
@@ -61,9 +70,11 @@ function start(){
   //   smoke.animate();
   // },50);
 
+  scene.add(createFloor());
 
 
-  let s = new Smoke2D();
+
+  let s = new Smoke3D();
   s.addToScene(scene);
   s.simulate();
 
